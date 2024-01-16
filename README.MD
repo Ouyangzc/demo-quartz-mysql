@@ -1,0 +1,3 @@
+quartz mysql版本
+
+多scheduler版本,多scheduler调用同一个JobDetail
