@@ -1,157 +1,179 @@
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
--- ----------------------------
--- Table structure for QRTZ_BLOB_TRIGGERS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_BLOB_TRIGGERS`;
-CREATE TABLE `QRTZ_BLOB_TRIGGERS`  (
-                                       `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '计划名称',
-                                       `TRIGGER_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器名称',
-                                       `TRIGGER_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器分组',
-                                       `BLOB_DATA` blob NULL COMMENT '基本信息'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '以Blob 类型存储的触发器' ROW_FORMAT = COMPACT;
+#
+# In your Quartz properties file, you'll need to set
+# org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+#
+#
+# By: Ron Cordell - roncordell
+#  I didn't see this anywhere, so I thought I'd post it here. This is the script from Quartz to create the tables in a MySQL database, modified to use INNODB instead of MYISAM.
 
--- ----------------------------
--- Table structure for QRTZ_CALENDARS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_CALENDARS`;
-CREATE TABLE `QRTZ_CALENDARS`  (
-                                   `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '计划名称',
-                                   `CALENDAR_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器名称',
-                                   `CALENDAR` blob NOT NULL COMMENT '日历信息'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '存放日历信息， quartz可配置一个日历来指定一个时间范围' ROW_FORMAT = COMPACT;
+DROP TABLE IF EXISTS QRTZ_FIRED_TRIGGERS;
+DROP TABLE IF EXISTS QRTZ_PAUSED_TRIGGER_GRPS;
+DROP TABLE IF EXISTS QRTZ_SCHEDULER_STATE;
+DROP TABLE IF EXISTS QRTZ_LOCKS;
+DROP TABLE IF EXISTS QRTZ_SIMPLE_TRIGGERS;
+DROP TABLE IF EXISTS QRTZ_SIMPROP_TRIGGERS;
+DROP TABLE IF EXISTS QRTZ_CRON_TRIGGERS;
+DROP TABLE IF EXISTS QRTZ_BLOB_TRIGGERS;
+DROP TABLE IF EXISTS QRTZ_TRIGGERS;
+DROP TABLE IF EXISTS QRTZ_JOB_DETAILS;
+DROP TABLE IF EXISTS QRTZ_CALENDARS;
 
--- ----------------------------
--- Table structure for QRTZ_CRON_TRIGGERS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_CRON_TRIGGERS`;
-CREATE TABLE `QRTZ_CRON_TRIGGERS`  (
-                                       `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '计划名称',
-                                       `TRIGGER_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器名称',
-                                       `TRIGGER_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器群组',
-                                       `CRON_EXPRESSION` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'cron表达式',
-                                       `TIME_ZONE_ID` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '时区'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '存放cron类型的触发器' ROW_FORMAT = COMPACT;
+CREATE TABLE QRTZ_JOB_DETAILS(
+                                 SCHED_NAME VARCHAR(120) NOT NULL,
+                                 JOB_NAME VARCHAR(190) NOT NULL,
+                                 JOB_GROUP VARCHAR(190) NOT NULL,
+                                 DESCRIPTION VARCHAR(250) NULL,
+                                 JOB_CLASS_NAME VARCHAR(250) NOT NULL,
+                                 IS_DURABLE VARCHAR(1) NOT NULL,
+                                 IS_NONCONCURRENT VARCHAR(1) NOT NULL,
+                                 IS_UPDATE_DATA VARCHAR(1) NOT NULL,
+                                 REQUESTS_RECOVERY VARCHAR(1) NOT NULL,
+                                 JOB_DATA BLOB NULL,
+                                 PRIMARY KEY (SCHED_NAME,JOB_NAME,JOB_GROUP))
+    ENGINE=InnoDB;
 
--- ----------------------------
--- Table structure for QRTZ_FIRED_TRIGGERS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_FIRED_TRIGGERS`;
-CREATE TABLE `QRTZ_FIRED_TRIGGERS`  (
-                                        `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '计划名称',
-                                        `ENTRY_ID` varchar(95) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '组织id',
-                                        `TRIGGER_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器名称',
-                                        `TRIGGER_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器组',
-                                        `INSTANCE_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '实例名称',
-                                        `FIRED_TIME` bigint(13) NOT NULL COMMENT '触发时间',
-                                        `SCHED_TIME` bigint(13) NOT NULL COMMENT '计划时间',
-                                        `PRIORITY` int(11) NOT NULL COMMENT '权重',
-                                        `STATE` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '状态',
-                                        `JOB_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '作业名称',
-                                        `JOB_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '作业群组',
-                                        `IS_NONCONCURRENT` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '是否并行',
-                                        `REQUESTS_RECOVERY` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '是否要求唤醒'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '存放已触发的触发器' ROW_FORMAT = COMPACT;
+CREATE TABLE QRTZ_TRIGGERS (
+                               SCHED_NAME VARCHAR(120) NOT NULL,
+                               TRIGGER_NAME VARCHAR(190) NOT NULL,
+                               TRIGGER_GROUP VARCHAR(190) NOT NULL,
+                               JOB_NAME VARCHAR(190) NOT NULL,
+                               JOB_GROUP VARCHAR(190) NOT NULL,
+                               DESCRIPTION VARCHAR(250) NULL,
+                               NEXT_FIRE_TIME BIGINT(13) NULL,
+                               PREV_FIRE_TIME BIGINT(13) NULL,
+                               PRIORITY INTEGER NULL,
+                               TRIGGER_STATE VARCHAR(16) NOT NULL,
+                               TRIGGER_TYPE VARCHAR(8) NOT NULL,
+                               START_TIME BIGINT(13) NOT NULL,
+                               END_TIME BIGINT(13) NULL,
+                               CALENDAR_NAME VARCHAR(190) NULL,
+                               MISFIRE_INSTR SMALLINT(2) NULL,
+                               JOB_DATA BLOB NULL,
+                               PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
+                               FOREIGN KEY (SCHED_NAME,JOB_NAME,JOB_GROUP)
+                                   REFERENCES QRTZ_JOB_DETAILS(SCHED_NAME,JOB_NAME,JOB_GROUP))
+    ENGINE=InnoDB;
 
--- ----------------------------
--- Table structure for QRTZ_JOB_DETAILS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_JOB_DETAILS`;
-CREATE TABLE `QRTZ_JOB_DETAILS`  (
-                                     `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调度器名称',
-                                     `JOB_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务名称',
-                                     `JOB_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务群组',
-                                     `DESCRIPTION` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '说明',
-                                     `JOB_CLASS_NAME` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务class全路径',
-                                     `IS_DURABLE` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                     `IS_NONCONCURRENT` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                     `IS_UPDATE_DATA` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                     `REQUESTS_RECOVERY` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                     `JOB_DATA` blob NULL
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '存放一个jobDetail信息' ROW_FORMAT = COMPACT;
+CREATE TABLE QRTZ_SIMPLE_TRIGGERS (
+                                      SCHED_NAME VARCHAR(120) NOT NULL,
+                                      TRIGGER_NAME VARCHAR(190) NOT NULL,
+                                      TRIGGER_GROUP VARCHAR(190) NOT NULL,
+                                      REPEAT_COUNT BIGINT(7) NOT NULL,
+                                      REPEAT_INTERVAL BIGINT(12) NOT NULL,
+                                      TIMES_TRIGGERED BIGINT(10) NOT NULL,
+                                      PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
+                                      FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
+                                          REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
+    ENGINE=InnoDB;
 
--- ----------------------------
--- Table structure for QRTZ_LOCKS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_LOCKS`;
-CREATE TABLE `QRTZ_LOCKS`  (
-                               `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '计划名称',
-                               `LOCK_NAME` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '锁名称',
-                               PRIMARY KEY (`SCHED_NAME`, `LOCK_NAME`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '存储程序的悲观锁的信息(假如使用了悲观锁)' ROW_FORMAT = COMPACT;
+CREATE TABLE QRTZ_CRON_TRIGGERS (
+                                    SCHED_NAME VARCHAR(120) NOT NULL,
+                                    TRIGGER_NAME VARCHAR(190) NOT NULL,
+                                    TRIGGER_GROUP VARCHAR(190) NOT NULL,
+                                    CRON_EXPRESSION VARCHAR(120) NOT NULL,
+                                    TIME_ZONE_ID VARCHAR(80),
+                                    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
+                                    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
+                                        REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
+    ENGINE=InnoDB;
 
--- ----------------------------
--- Table structure for QRTZ_PAUSED_TRIGGER_GRPS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_PAUSED_TRIGGER_GRPS`;
-CREATE TABLE `QRTZ_PAUSED_TRIGGER_GRPS`  (
-                                             `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '计划名称',
-                                             `TRIGGER_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器组'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '存放暂停掉的触发器' ROW_FORMAT = COMPACT;
--- ----------------------------
--- Table structure for QRTZ_SCHEDULER_STATE
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_SCHEDULER_STATE`;
-CREATE TABLE `QRTZ_SCHEDULER_STATE`  (
-                                         `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调度器名称',
-                                         `INSTANCE_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                         `LAST_CHECKIN_TIME` bigint(13) NOT NULL COMMENT '最后验证时间',
-                                         `CHECKIN_INTERVAL` bigint(13) NOT NULL COMMENT '时间间隔'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '调度器状态' ROW_FORMAT = COMPACT;
+CREATE TABLE QRTZ_SIMPROP_TRIGGERS
+(
+    SCHED_NAME VARCHAR(120) NOT NULL,
+    TRIGGER_NAME VARCHAR(190) NOT NULL,
+    TRIGGER_GROUP VARCHAR(190) NOT NULL,
+    STR_PROP_1 VARCHAR(512) NULL,
+    STR_PROP_2 VARCHAR(512) NULL,
+    STR_PROP_3 VARCHAR(512) NULL,
+    INT_PROP_1 INT NULL,
+    INT_PROP_2 INT NULL,
+    LONG_PROP_1 BIGINT NULL,
+    LONG_PROP_2 BIGINT NULL,
+    DEC_PROP_1 NUMERIC(13,4) NULL,
+    DEC_PROP_2 NUMERIC(13,4) NULL,
+    BOOL_PROP_1 VARCHAR(1) NULL,
+    BOOL_PROP_2 VARCHAR(1) NULL,
+    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
+    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
+        REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
+    ENGINE=InnoDB;
 
--- ----------------------------
--- Table structure for QRTZ_SIMPLE_TRIGGERS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_SIMPLE_TRIGGERS`;
-CREATE TABLE `QRTZ_SIMPLE_TRIGGERS`  (
-                                         `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '计划名称',
-                                         `TRIGGER_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器名称',
-                                         `TRIGGER_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器组',
-                                         `REPEAT_COUNT` bigint(7) NOT NULL COMMENT '重复次数',
-                                         `REPEAT_INTERVAL` bigint(12) NOT NULL COMMENT '重复间隔',
-                                         `TIMES_TRIGGERED` bigint(10) NOT NULL COMMENT '触发次数'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '简单触发器的信息' ROW_FORMAT = COMPACT;
+CREATE TABLE QRTZ_BLOB_TRIGGERS (
+                                    SCHED_NAME VARCHAR(120) NOT NULL,
+                                    TRIGGER_NAME VARCHAR(190) NOT NULL,
+                                    TRIGGER_GROUP VARCHAR(190) NOT NULL,
+                                    BLOB_DATA BLOB NULL,
+                                    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
+                                    INDEX (SCHED_NAME,TRIGGER_NAME, TRIGGER_GROUP),
+                                    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
+                                        REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
+    ENGINE=InnoDB;
 
--- ----------------------------
--- Table structure for QRTZ_SIMPROP_TRIGGERS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_SIMPROP_TRIGGERS`;
-CREATE TABLE `QRTZ_SIMPROP_TRIGGERS`  (
-                                          `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                          `TRIGGER_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                          `TRIGGER_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                          `STR_PROP_1` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-                                          `STR_PROP_2` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-                                          `STR_PROP_3` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-                                          `INT_PROP_1` int(11) NULL DEFAULT NULL,
-                                          `INT_PROP_2` int(11) NULL DEFAULT NULL,
-                                          `LONG_PROP_1` bigint(20) NULL DEFAULT NULL,
-                                          `LONG_PROP_2` bigint(20) NULL DEFAULT NULL,
-                                          `DEC_PROP_1` decimal(13, 4) NULL DEFAULT NULL,
-                                          `DEC_PROP_2` decimal(13, 4) NULL DEFAULT NULL,
-                                          `BOOL_PROP_1` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-                                          `BOOL_PROP_2` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
+CREATE TABLE QRTZ_CALENDARS (
+                                SCHED_NAME VARCHAR(120) NOT NULL,
+                                CALENDAR_NAME VARCHAR(190) NOT NULL,
+                                CALENDAR BLOB NOT NULL,
+                                PRIMARY KEY (SCHED_NAME,CALENDAR_NAME))
+    ENGINE=InnoDB;
 
--- ----------------------------
--- Table structure for QRTZ_TRIGGERS
--- ----------------------------
-DROP TABLE IF EXISTS `QRTZ_TRIGGERS`;
-CREATE TABLE `QRTZ_TRIGGERS`  (
-                                  `SCHED_NAME` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '计划名称',
-                                  `TRIGGER_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器名称',
-                                  `TRIGGER_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器群组',
-                                  `JOB_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '作业名称',
-                                  `JOB_GROUP` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '作业群组',
-                                  `DESCRIPTION` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '说明信息',
-                                  `NEXT_FIRE_TIME` bigint(13) NULL DEFAULT NULL COMMENT '下次执行时间',
-                                  `PREV_FIRE_TIME` bigint(13) NULL DEFAULT NULL COMMENT '上次执行时间',
-                                  `PRIORITY` int(11) NULL DEFAULT NULL COMMENT '线程优先级',
-                                  `TRIGGER_STATE` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发状态此字段很重要（PAUSED 停顿，ACQUIRED 开始）',
-                                  `TRIGGER_TYPE` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发器类型',
-                                  `START_TIME` bigint(13) NOT NULL COMMENT '开始时间',
-                                  `END_TIME` bigint(13) NULL DEFAULT NULL COMMENT '结束时间',
-                                  `CALENDAR_NAME` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '日历名称',
-                                  `MISFIRE_INSTR` smallint(2) NULL DEFAULT NULL,
-                                  `JOB_DATA` blob NULL
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '触发器的基本信息' ROW_FORMAT = COMPACT;
+CREATE TABLE QRTZ_PAUSED_TRIGGER_GRPS (
+                                          SCHED_NAME VARCHAR(120) NOT NULL,
+                                          TRIGGER_GROUP VARCHAR(190) NOT NULL,
+                                          PRIMARY KEY (SCHED_NAME,TRIGGER_GROUP))
+    ENGINE=InnoDB;
+
+CREATE TABLE QRTZ_FIRED_TRIGGERS (
+                                     SCHED_NAME VARCHAR(120) NOT NULL,
+                                     ENTRY_ID VARCHAR(95) NOT NULL,
+                                     TRIGGER_NAME VARCHAR(190) NOT NULL,
+                                     TRIGGER_GROUP VARCHAR(190) NOT NULL,
+                                     INSTANCE_NAME VARCHAR(190) NOT NULL,
+                                     FIRED_TIME BIGINT(13) NOT NULL,
+                                     SCHED_TIME BIGINT(13) NOT NULL,
+                                     PRIORITY INTEGER NOT NULL,
+                                     STATE VARCHAR(16) NOT NULL,
+                                     JOB_NAME VARCHAR(190) NULL,
+                                     JOB_GROUP VARCHAR(190) NULL,
+                                     IS_NONCONCURRENT VARCHAR(1) NULL,
+                                     REQUESTS_RECOVERY VARCHAR(1) NULL,
+                                     PRIMARY KEY (SCHED_NAME,ENTRY_ID))
+    ENGINE=InnoDB;
+
+CREATE TABLE QRTZ_SCHEDULER_STATE (
+                                      SCHED_NAME VARCHAR(120) NOT NULL,
+                                      INSTANCE_NAME VARCHAR(190) NOT NULL,
+                                      LAST_CHECKIN_TIME BIGINT(13) NOT NULL,
+                                      CHECKIN_INTERVAL BIGINT(13) NOT NULL,
+                                      PRIMARY KEY (SCHED_NAME,INSTANCE_NAME))
+    ENGINE=InnoDB;
+
+CREATE TABLE QRTZ_LOCKS (
+                            SCHED_NAME VARCHAR(120) NOT NULL,
+                            LOCK_NAME VARCHAR(40) NOT NULL,
+                            PRIMARY KEY (SCHED_NAME,LOCK_NAME))
+    ENGINE=InnoDB;
+
+CREATE INDEX IDX_QRTZ_J_REQ_RECOVERY ON QRTZ_JOB_DETAILS(SCHED_NAME,REQUESTS_RECOVERY);
+CREATE INDEX IDX_QRTZ_J_GRP ON QRTZ_JOB_DETAILS(SCHED_NAME,JOB_GROUP);
+
+CREATE INDEX IDX_QRTZ_T_J ON QRTZ_TRIGGERS(SCHED_NAME,JOB_NAME,JOB_GROUP);
+CREATE INDEX IDX_QRTZ_T_JG ON QRTZ_TRIGGERS(SCHED_NAME,JOB_GROUP);
+CREATE INDEX IDX_QRTZ_T_C ON QRTZ_TRIGGERS(SCHED_NAME,CALENDAR_NAME);
+CREATE INDEX IDX_QRTZ_T_G ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_GROUP);
+CREATE INDEX IDX_QRTZ_T_STATE ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_STATE);
+CREATE INDEX IDX_QRTZ_T_N_STATE ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP,TRIGGER_STATE);
+CREATE INDEX IDX_QRTZ_T_N_G_STATE ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_GROUP,TRIGGER_STATE);
+CREATE INDEX IDX_QRTZ_T_NEXT_FIRE_TIME ON QRTZ_TRIGGERS(SCHED_NAME,NEXT_FIRE_TIME);
+CREATE INDEX IDX_QRTZ_T_NFT_ST ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_STATE,NEXT_FIRE_TIME);
+CREATE INDEX IDX_QRTZ_T_NFT_MISFIRE ON QRTZ_TRIGGERS(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME);
+CREATE INDEX IDX_QRTZ_T_NFT_ST_MISFIRE ON QRTZ_TRIGGERS(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_STATE);
+CREATE INDEX IDX_QRTZ_T_NFT_ST_MISFIRE_GRP ON QRTZ_TRIGGERS(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_GROUP,TRIGGER_STATE);
+
+CREATE INDEX IDX_QRTZ_FT_TRIG_INST_NAME ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,INSTANCE_NAME);
+CREATE INDEX IDX_QRTZ_FT_INST_JOB_REQ_RCVRY ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,INSTANCE_NAME,REQUESTS_RECOVERY);
+CREATE INDEX IDX_QRTZ_FT_J_G ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,JOB_NAME,JOB_GROUP);
+CREATE INDEX IDX_QRTZ_FT_JG ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,JOB_GROUP);
+CREATE INDEX IDX_QRTZ_FT_T_G ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
+CREATE INDEX IDX_QRTZ_FT_TG ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,TRIGGER_GROUP);
+
+commit;
