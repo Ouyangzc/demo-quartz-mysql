@@ -1,179 +1,197 @@
-#
-# In your Quartz properties file, you'll need to set
-# org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-#
-#
-# By: Ron Cordell - roncordell
-#  I didn't see this anywhere, so I thought I'd post it here. This is the script from Quartz to create the tables in a MySQL database, modified to use INNODB instead of MYISAM.
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS QRTZ_FIRED_TRIGGERS;
-DROP TABLE IF EXISTS QRTZ_PAUSED_TRIGGER_GRPS;
-DROP TABLE IF EXISTS QRTZ_SCHEDULER_STATE;
-DROP TABLE IF EXISTS QRTZ_LOCKS;
-DROP TABLE IF EXISTS QRTZ_SIMPLE_TRIGGERS;
-DROP TABLE IF EXISTS QRTZ_SIMPROP_TRIGGERS;
-DROP TABLE IF EXISTS QRTZ_CRON_TRIGGERS;
-DROP TABLE IF EXISTS QRTZ_BLOB_TRIGGERS;
-DROP TABLE IF EXISTS QRTZ_TRIGGERS;
-DROP TABLE IF EXISTS QRTZ_JOB_DETAILS;
-DROP TABLE IF EXISTS QRTZ_CALENDARS;
+-- ----------------------------
+-- Table structure for QRTZ_BLOB_TRIGGERS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_BLOB_TRIGGERS`;
+CREATE TABLE `QRTZ_BLOB_TRIGGERS`  (
+                                       `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                       `TRIGGER_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                       `TRIGGER_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                       `BLOB_DATA` blob NULL,
+                                       PRIMARY KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) USING BTREE,
+                                       INDEX `SCHED_NAME`(`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) USING BTREE,
+                                       CONSTRAINT `QRTZ_BLOB_TRIGGERS_ibfk_1` FOREIGN KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) REFERENCES `QRTZ_TRIGGERS` (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_JOB_DETAILS(
-                                 SCHED_NAME VARCHAR(120) NOT NULL,
-                                 JOB_NAME VARCHAR(190) NOT NULL,
-                                 JOB_GROUP VARCHAR(190) NOT NULL,
-                                 DESCRIPTION VARCHAR(250) NULL,
-                                 JOB_CLASS_NAME VARCHAR(250) NOT NULL,
-                                 IS_DURABLE VARCHAR(1) NOT NULL,
-                                 IS_NONCONCURRENT VARCHAR(1) NOT NULL,
-                                 IS_UPDATE_DATA VARCHAR(1) NOT NULL,
-                                 REQUESTS_RECOVERY VARCHAR(1) NOT NULL,
-                                 JOB_DATA BLOB NULL,
-                                 PRIMARY KEY (SCHED_NAME,JOB_NAME,JOB_GROUP))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_CALENDARS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_CALENDARS`;
+CREATE TABLE `QRTZ_CALENDARS`  (
+                                   `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                   `CALENDAR_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                   `CALENDAR` blob NOT NULL,
+                                   PRIMARY KEY (`SCHED_NAME`, `CALENDAR_NAME`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_TRIGGERS (
-                               SCHED_NAME VARCHAR(120) NOT NULL,
-                               TRIGGER_NAME VARCHAR(190) NOT NULL,
-                               TRIGGER_GROUP VARCHAR(190) NOT NULL,
-                               JOB_NAME VARCHAR(190) NOT NULL,
-                               JOB_GROUP VARCHAR(190) NOT NULL,
-                               DESCRIPTION VARCHAR(250) NULL,
-                               NEXT_FIRE_TIME BIGINT(13) NULL,
-                               PREV_FIRE_TIME BIGINT(13) NULL,
-                               PRIORITY INTEGER NULL,
-                               TRIGGER_STATE VARCHAR(16) NOT NULL,
-                               TRIGGER_TYPE VARCHAR(8) NOT NULL,
-                               START_TIME BIGINT(13) NOT NULL,
-                               END_TIME BIGINT(13) NULL,
-                               CALENDAR_NAME VARCHAR(190) NULL,
-                               MISFIRE_INSTR SMALLINT(2) NULL,
-                               JOB_DATA BLOB NULL,
-                               PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-                               FOREIGN KEY (SCHED_NAME,JOB_NAME,JOB_GROUP)
-                                   REFERENCES QRTZ_JOB_DETAILS(SCHED_NAME,JOB_NAME,JOB_GROUP))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_CRON_TRIGGERS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_CRON_TRIGGERS`;
+CREATE TABLE `QRTZ_CRON_TRIGGERS`  (
+                                       `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                       `TRIGGER_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                       `TRIGGER_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                       `CRON_EXPRESSION` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                       `TIME_ZONE_ID` varchar(80) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                       PRIMARY KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) USING BTREE,
+                                       CONSTRAINT `QRTZ_CRON_TRIGGERS_ibfk_1` FOREIGN KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) REFERENCES `QRTZ_TRIGGERS` (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_SIMPLE_TRIGGERS (
-                                      SCHED_NAME VARCHAR(120) NOT NULL,
-                                      TRIGGER_NAME VARCHAR(190) NOT NULL,
-                                      TRIGGER_GROUP VARCHAR(190) NOT NULL,
-                                      REPEAT_COUNT BIGINT(7) NOT NULL,
-                                      REPEAT_INTERVAL BIGINT(12) NOT NULL,
-                                      TIMES_TRIGGERED BIGINT(10) NOT NULL,
-                                      PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-                                      FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-                                          REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_FIRED_TRIGGERS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_FIRED_TRIGGERS`;
+CREATE TABLE `QRTZ_FIRED_TRIGGERS`  (
+                                        `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                        `ENTRY_ID` varchar(95) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                        `TRIGGER_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                        `TRIGGER_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                        `INSTANCE_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                        `FIRED_TIME` bigint(13) NOT NULL,
+                                        `SCHED_TIME` bigint(13) NOT NULL,
+                                        `PRIORITY` int(11) NOT NULL,
+                                        `STATE` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                        `JOB_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                        `JOB_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                        `IS_NONCONCURRENT` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                        `REQUESTS_RECOVERY` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                        PRIMARY KEY (`SCHED_NAME`, `ENTRY_ID`) USING BTREE,
+                                        INDEX `IDX_QRTZ_FT_TRIG_INST_NAME`(`SCHED_NAME`, `INSTANCE_NAME`) USING BTREE,
+                                        INDEX `IDX_QRTZ_FT_INST_JOB_REQ_RCVRY`(`SCHED_NAME`, `INSTANCE_NAME`, `REQUESTS_RECOVERY`) USING BTREE,
+                                        INDEX `IDX_QRTZ_FT_J_G`(`SCHED_NAME`, `JOB_NAME`, `JOB_GROUP`) USING BTREE,
+                                        INDEX `IDX_QRTZ_FT_JG`(`SCHED_NAME`, `JOB_GROUP`) USING BTREE,
+                                        INDEX `IDX_QRTZ_FT_T_G`(`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) USING BTREE,
+                                        INDEX `IDX_QRTZ_FT_TG`(`SCHED_NAME`, `TRIGGER_GROUP`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_CRON_TRIGGERS (
-                                    SCHED_NAME VARCHAR(120) NOT NULL,
-                                    TRIGGER_NAME VARCHAR(190) NOT NULL,
-                                    TRIGGER_GROUP VARCHAR(190) NOT NULL,
-                                    CRON_EXPRESSION VARCHAR(120) NOT NULL,
-                                    TIME_ZONE_ID VARCHAR(80),
-                                    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-                                    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-                                        REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_JOB_DETAILS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_JOB_DETAILS`;
+CREATE TABLE `QRTZ_JOB_DETAILS`  (
+                                     `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                     `JOB_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                     `JOB_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                     `DESCRIPTION` varchar(250) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                     `JOB_CLASS_NAME` varchar(250) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                     `IS_DURABLE` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                     `IS_NONCONCURRENT` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                     `IS_UPDATE_DATA` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                     `REQUESTS_RECOVERY` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                     `JOB_DATA` blob NULL,
+                                     PRIMARY KEY (`SCHED_NAME`, `JOB_NAME`, `JOB_GROUP`) USING BTREE,
+                                     INDEX `IDX_QRTZ_J_REQ_RECOVERY`(`SCHED_NAME`, `REQUESTS_RECOVERY`) USING BTREE,
+                                     INDEX `IDX_QRTZ_J_GRP`(`SCHED_NAME`, `JOB_GROUP`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_SIMPROP_TRIGGERS
-(
-    SCHED_NAME VARCHAR(120) NOT NULL,
-    TRIGGER_NAME VARCHAR(190) NOT NULL,
-    TRIGGER_GROUP VARCHAR(190) NOT NULL,
-    STR_PROP_1 VARCHAR(512) NULL,
-    STR_PROP_2 VARCHAR(512) NULL,
-    STR_PROP_3 VARCHAR(512) NULL,
-    INT_PROP_1 INT NULL,
-    INT_PROP_2 INT NULL,
-    LONG_PROP_1 BIGINT NULL,
-    LONG_PROP_2 BIGINT NULL,
-    DEC_PROP_1 NUMERIC(13,4) NULL,
-    DEC_PROP_2 NUMERIC(13,4) NULL,
-    BOOL_PROP_1 VARCHAR(1) NULL,
-    BOOL_PROP_2 VARCHAR(1) NULL,
-    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-        REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_LOCKS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_LOCKS`;
+CREATE TABLE `QRTZ_LOCKS`  (
+                               `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                               `LOCK_NAME` varchar(40) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                               PRIMARY KEY (`SCHED_NAME`, `LOCK_NAME`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_BLOB_TRIGGERS (
-                                    SCHED_NAME VARCHAR(120) NOT NULL,
-                                    TRIGGER_NAME VARCHAR(190) NOT NULL,
-                                    TRIGGER_GROUP VARCHAR(190) NOT NULL,
-                                    BLOB_DATA BLOB NULL,
-                                    PRIMARY KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP),
-                                    INDEX (SCHED_NAME,TRIGGER_NAME, TRIGGER_GROUP),
-                                    FOREIGN KEY (SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP)
-                                        REFERENCES QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_PAUSED_TRIGGER_GRPS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_PAUSED_TRIGGER_GRPS`;
+CREATE TABLE `QRTZ_PAUSED_TRIGGER_GRPS`  (
+                                             `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                             `TRIGGER_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                             PRIMARY KEY (`SCHED_NAME`, `TRIGGER_GROUP`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_CALENDARS (
-                                SCHED_NAME VARCHAR(120) NOT NULL,
-                                CALENDAR_NAME VARCHAR(190) NOT NULL,
-                                CALENDAR BLOB NOT NULL,
-                                PRIMARY KEY (SCHED_NAME,CALENDAR_NAME))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_SCHEDULER_STATE
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_SCHEDULER_STATE`;
+CREATE TABLE `QRTZ_SCHEDULER_STATE`  (
+                                         `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                         `INSTANCE_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                         `LAST_CHECKIN_TIME` bigint(13) NOT NULL,
+                                         `CHECKIN_INTERVAL` bigint(13) NOT NULL,
+                                         PRIMARY KEY (`SCHED_NAME`, `INSTANCE_NAME`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_PAUSED_TRIGGER_GRPS (
-                                          SCHED_NAME VARCHAR(120) NOT NULL,
-                                          TRIGGER_GROUP VARCHAR(190) NOT NULL,
-                                          PRIMARY KEY (SCHED_NAME,TRIGGER_GROUP))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_SIMPLE_TRIGGERS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_SIMPLE_TRIGGERS`;
+CREATE TABLE `QRTZ_SIMPLE_TRIGGERS`  (
+                                         `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                         `TRIGGER_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                         `TRIGGER_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                         `REPEAT_COUNT` bigint(7) NOT NULL,
+                                         `REPEAT_INTERVAL` bigint(12) NOT NULL,
+                                         `TIMES_TRIGGERED` bigint(10) NOT NULL,
+                                         PRIMARY KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) USING BTREE,
+                                         CONSTRAINT `QRTZ_SIMPLE_TRIGGERS_ibfk_1` FOREIGN KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) REFERENCES `QRTZ_TRIGGERS` (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_FIRED_TRIGGERS (
-                                     SCHED_NAME VARCHAR(120) NOT NULL,
-                                     ENTRY_ID VARCHAR(95) NOT NULL,
-                                     TRIGGER_NAME VARCHAR(190) NOT NULL,
-                                     TRIGGER_GROUP VARCHAR(190) NOT NULL,
-                                     INSTANCE_NAME VARCHAR(190) NOT NULL,
-                                     FIRED_TIME BIGINT(13) NOT NULL,
-                                     SCHED_TIME BIGINT(13) NOT NULL,
-                                     PRIORITY INTEGER NOT NULL,
-                                     STATE VARCHAR(16) NOT NULL,
-                                     JOB_NAME VARCHAR(190) NULL,
-                                     JOB_GROUP VARCHAR(190) NULL,
-                                     IS_NONCONCURRENT VARCHAR(1) NULL,
-                                     REQUESTS_RECOVERY VARCHAR(1) NULL,
-                                     PRIMARY KEY (SCHED_NAME,ENTRY_ID))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_SIMPROP_TRIGGERS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_SIMPROP_TRIGGERS`;
+CREATE TABLE `QRTZ_SIMPROP_TRIGGERS`  (
+                                          `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                          `TRIGGER_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                          `TRIGGER_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                          `STR_PROP_1` varchar(512) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                          `STR_PROP_2` varchar(512) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                          `STR_PROP_3` varchar(512) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                          `INT_PROP_1` int(11) NULL DEFAULT NULL,
+                                          `INT_PROP_2` int(11) NULL DEFAULT NULL,
+                                          `LONG_PROP_1` bigint(20) NULL DEFAULT NULL,
+                                          `LONG_PROP_2` bigint(20) NULL DEFAULT NULL,
+                                          `DEC_PROP_1` decimal(13, 4) NULL DEFAULT NULL,
+                                          `DEC_PROP_2` decimal(13, 4) NULL DEFAULT NULL,
+                                          `BOOL_PROP_1` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                          `BOOL_PROP_2` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                          PRIMARY KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) USING BTREE,
+                                          CONSTRAINT `QRTZ_SIMPROP_TRIGGERS_ibfk_1` FOREIGN KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) REFERENCES `QRTZ_TRIGGERS` (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_SCHEDULER_STATE (
-                                      SCHED_NAME VARCHAR(120) NOT NULL,
-                                      INSTANCE_NAME VARCHAR(190) NOT NULL,
-                                      LAST_CHECKIN_TIME BIGINT(13) NOT NULL,
-                                      CHECKIN_INTERVAL BIGINT(13) NOT NULL,
-                                      PRIMARY KEY (SCHED_NAME,INSTANCE_NAME))
-    ENGINE=InnoDB;
+-- ----------------------------
+-- Table structure for QRTZ_TRIGGERS
+-- ----------------------------
+DROP TABLE IF EXISTS `QRTZ_TRIGGERS`;
+CREATE TABLE `QRTZ_TRIGGERS`  (
+                                  `SCHED_NAME` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                  `TRIGGER_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                  `TRIGGER_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                  `JOB_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                  `JOB_GROUP` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                  `DESCRIPTION` varchar(250) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                  `NEXT_FIRE_TIME` bigint(13) NULL DEFAULT NULL,
+                                  `PREV_FIRE_TIME` bigint(13) NULL DEFAULT NULL,
+                                  `PRIORITY` int(11) NULL DEFAULT NULL,
+                                  `TRIGGER_STATE` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                  `TRIGGER_TYPE` varchar(8) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                                  `START_TIME` bigint(13) NOT NULL,
+                                  `END_TIME` bigint(13) NULL DEFAULT NULL,
+                                  `CALENDAR_NAME` varchar(190) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                  `MISFIRE_INSTR` smallint(2) NULL DEFAULT NULL,
+                                  `JOB_DATA` blob NULL,
+                                  PRIMARY KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_J`(`SCHED_NAME`, `JOB_NAME`, `JOB_GROUP`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_JG`(`SCHED_NAME`, `JOB_GROUP`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_C`(`SCHED_NAME`, `CALENDAR_NAME`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_G`(`SCHED_NAME`, `TRIGGER_GROUP`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_STATE`(`SCHED_NAME`, `TRIGGER_STATE`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_N_STATE`(`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`, `TRIGGER_STATE`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_N_G_STATE`(`SCHED_NAME`, `TRIGGER_GROUP`, `TRIGGER_STATE`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_NEXT_FIRE_TIME`(`SCHED_NAME`, `NEXT_FIRE_TIME`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_NFT_ST`(`SCHED_NAME`, `TRIGGER_STATE`, `NEXT_FIRE_TIME`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_NFT_MISFIRE`(`SCHED_NAME`, `MISFIRE_INSTR`, `NEXT_FIRE_TIME`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_NFT_ST_MISFIRE`(`SCHED_NAME`, `MISFIRE_INSTR`, `NEXT_FIRE_TIME`, `TRIGGER_STATE`) USING BTREE,
+                                  INDEX `IDX_QRTZ_T_NFT_ST_MISFIRE_GRP`(`SCHED_NAME`, `MISFIRE_INSTR`, `NEXT_FIRE_TIME`, `TRIGGER_GROUP`, `TRIGGER_STATE`) USING BTREE,
+                                  CONSTRAINT `QRTZ_TRIGGERS_ibfk_1` FOREIGN KEY (`SCHED_NAME`, `JOB_NAME`, `JOB_GROUP`) REFERENCES `QRTZ_JOB_DETAILS` (`SCHED_NAME`, `JOB_NAME`, `JOB_GROUP`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
-CREATE TABLE QRTZ_LOCKS (
-                            SCHED_NAME VARCHAR(120) NOT NULL,
-                            LOCK_NAME VARCHAR(40) NOT NULL,
-                            PRIMARY KEY (SCHED_NAME,LOCK_NAME))
-    ENGINE=InnoDB;
-
-CREATE INDEX IDX_QRTZ_J_REQ_RECOVERY ON QRTZ_JOB_DETAILS(SCHED_NAME,REQUESTS_RECOVERY);
-CREATE INDEX IDX_QRTZ_J_GRP ON QRTZ_JOB_DETAILS(SCHED_NAME,JOB_GROUP);
-
-CREATE INDEX IDX_QRTZ_T_J ON QRTZ_TRIGGERS(SCHED_NAME,JOB_NAME,JOB_GROUP);
-CREATE INDEX IDX_QRTZ_T_JG ON QRTZ_TRIGGERS(SCHED_NAME,JOB_GROUP);
-CREATE INDEX IDX_QRTZ_T_C ON QRTZ_TRIGGERS(SCHED_NAME,CALENDAR_NAME);
-CREATE INDEX IDX_QRTZ_T_G ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_GROUP);
-CREATE INDEX IDX_QRTZ_T_STATE ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_STATE);
-CREATE INDEX IDX_QRTZ_T_N_STATE ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP,TRIGGER_STATE);
-CREATE INDEX IDX_QRTZ_T_N_G_STATE ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_GROUP,TRIGGER_STATE);
-CREATE INDEX IDX_QRTZ_T_NEXT_FIRE_TIME ON QRTZ_TRIGGERS(SCHED_NAME,NEXT_FIRE_TIME);
-CREATE INDEX IDX_QRTZ_T_NFT_ST ON QRTZ_TRIGGERS(SCHED_NAME,TRIGGER_STATE,NEXT_FIRE_TIME);
-CREATE INDEX IDX_QRTZ_T_NFT_MISFIRE ON QRTZ_TRIGGERS(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME);
-CREATE INDEX IDX_QRTZ_T_NFT_ST_MISFIRE ON QRTZ_TRIGGERS(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_STATE);
-CREATE INDEX IDX_QRTZ_T_NFT_ST_MISFIRE_GRP ON QRTZ_TRIGGERS(SCHED_NAME,MISFIRE_INSTR,NEXT_FIRE_TIME,TRIGGER_GROUP,TRIGGER_STATE);
-
-CREATE INDEX IDX_QRTZ_FT_TRIG_INST_NAME ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,INSTANCE_NAME);
-CREATE INDEX IDX_QRTZ_FT_INST_JOB_REQ_RCVRY ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,INSTANCE_NAME,REQUESTS_RECOVERY);
-CREATE INDEX IDX_QRTZ_FT_J_G ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,JOB_NAME,JOB_GROUP);
-CREATE INDEX IDX_QRTZ_FT_JG ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,JOB_GROUP);
-CREATE INDEX IDX_QRTZ_FT_T_G ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,TRIGGER_NAME,TRIGGER_GROUP);
-CREATE INDEX IDX_QRTZ_FT_TG ON QRTZ_FIRED_TRIGGERS(SCHED_NAME,TRIGGER_GROUP);
-
-commit;
+SET FOREIGN_KEY_CHECKS = 1;
